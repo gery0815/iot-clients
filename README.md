@@ -5,7 +5,7 @@ This project provides a Docker Compose setup for running:
 - **Node-RED**
 - **openCCU**
 
-It also includes helper scripts to install and update the setup.
+It also includes helper scripts to install and update the setup from the repository `gery0815/iot-clients`.
 
 ## Requirements
 
@@ -19,8 +19,56 @@ Before using the scripts, make sure the following tools are installed:
 ## Files
 
 - `docker-compose.yml` — defines the Node-RED and openCCU containers
-- `install.sh` — clones the repository and starts the containers
-- `update.sh` — reloads the latest project files from Git and restarts the containers
+- `install.sh` — clones the repository, configures the setup, and starts the containers
+- `update.sh` — reloads the latest files from Git, optionally updates configuration, and restarts the containers
+
+## Configuration
+
+### openCCU USB device mapping
+
+The Docker Compose setup supports mapping a USB device from the host into the openCCU container.
+
+By default, the scripts use:
+
+```bash
+/dev/ttyUSB0
+```
+
+During installation, `install.sh` asks for the USB device path.  
+During updates, `update.sh` can optionally change it.
+
+The selected value is stored in:
+
+```bash
+.env
+```
+
+Example:
+
+```bash
+OCCU_USB_DEVICE=/dev/ttyUSB0
+```
+
+If your RF module is connected under a different path, such as `/dev/ttyACM0`, enter that value during install or update.
+
+### Node-RED admin credentials
+
+The scripts create a Node-RED `settings.js` file with admin login enabled.
+
+During installation, `install.sh` asks for:
+
+- Node-RED username
+- Node-RED password
+
+During updates, `update.sh` can optionally change these credentials.
+
+The generated file is stored here:
+
+```bash
+nodered-data/settings.js
+```
+
+The password is stored as a bcrypt hash, not as plain text.
 
 ## Install
 
@@ -29,7 +77,7 @@ Before using the scripts, make sure the following tools are installed:
 ```bash
 curl -fLo install.sh https://raw.githubusercontent.com/gery0815/iot-clients/main/install.sh
 chmod +x install.sh
-./install.sh https://github.com/gery0815/iot-clients.git
+./install.sh
 ```
 
 ### Option 2: Download only the install script with wget
@@ -37,7 +85,7 @@ chmod +x install.sh
 ```bash
 wget -O install.sh https://raw.githubusercontent.com/gery0815/iot-clients/main/install.sh
 chmod +x install.sh
-./install.sh https://github.com/gery0815/iot-clients.git
+./install.sh
 ```
 
 ### Option 3: Clone the full repository
@@ -46,14 +94,25 @@ chmod +x install.sh
 git clone https://github.com/gery0815/iot-clients.git
 cd iot-clients
 chmod +x install.sh
-./install.sh https://github.com/gery0815/iot-clients.git
+./install.sh
 ```
+
+### What happens during install
+
+The install script will:
+
+1. clone the repository,
+2. ask for the openCCU USB device path,
+3. ask for Node-RED admin username and password,
+4. generate `.env`,
+5. generate `nodered-data/settings.js`,
+6. start the containers.
 
 ## Update after changes
 
-If the `docker-compose.yml` or scripts were updated in Git, you can reload the latest files from the server and restart the containers.
+If the repository or `docker-compose.yml` was updated, you can pull the latest version and restart the setup.
 
-### Option 1: Run the update script from inside the repository
+### Option 1: Run from inside the repository
 
 ```bash
 cd iot-clients
@@ -77,111 +136,6 @@ chmod +x update.sh
 ./update.sh
 ```
 
-## Configuration
-
-### openCCU USB device mapping
-
-The Docker Compose setup supports mapping a USB device from the host into the openCCU container.
-
-By default, the scripts use:
-
-```bash
-/dev/ttyUSB0
-```
-
-During installation, `install.sh` will ask for the USB device path.  
-During updates, `update.sh` can optionally change it.
-
-The selected value is stored in:
-
-```bash
-.env
-```
-
-Example:
-
-```bash
-OCCU_USB_DEVICE=/dev/ttyUSB0
-```
-
-If your RF module is connected under a different path, such as `/dev/ttyACM0`, enter that value during install or update.
-
-### Node-RED admin credentials
-
-The scripts create a Node-RED `settings.js` file with admin login enabled.
-
-During installation, `install.sh` will ask for:
-
-- Node-RED username
-- Node-RED password
-
-During updates, `update.sh` can optionally change these credentials.
-
-The generated file is stored here:
-
-```bash
-nodered-data/settings.js
-```
-
-The password is stored as a bcrypt hash, not as plain text.
-
-## Install
-
-### Option 1: Download only the install script with curl
-
-```bash
-curl -fLo install.sh https://raw.githubusercontent.com/gery0815/iot-clients/main/install.sh
-chmod +x install.sh
-./install.sh https://github.com/gery0815/iot-clients.git
-```
-
-### Option 2: Download only the install script with wget
-
-```bash
-wget -O install.sh https://raw.githubusercontent.com/gery0815/iot-clients/main/install.sh
-chmod +x install.sh
-./install.sh https://github.com/gery0815/iot-clients.git
-```
-
-### What happens during install
-
-The install script will:
-
-1. clone the repository,
-2. ask for the openCCU USB device path,
-3. ask for Node-RED admin username and password,
-4. generate `.env`,
-5. generate `nodered-data/settings.js`,
-6. start the containers.
-
-## Update after changes
-
-If the repository or `docker-compose.yml` was updated, you can pull the latest version and restart the setup.
-
-### Run from inside the repository
-
-```bash
-cd iot-clients
-chmod +x update.sh
-./update.sh
-```
-
-### Download directly with curl
-
-```bash
-curl -fLo update.sh https://raw.githubusercontent.com/gery0815/iot-clients/main/update.sh
-chmod +x update.sh
-./update.sh
-```
-
-### Download directly with wget
-
-```bash
-wget -O update.sh https://raw.githubusercontent.com/gery0815/iot-clients/main/update.sh
-chmod +x update.sh
-./update.sh
-```
-
 ### What happens during update
 
 The update script will:
@@ -192,68 +146,7 @@ The update script will:
 4. pull updated container images,
 5. restart the containers.
 
-## What the install script does
-
-The install script will:
-
-1. check whether a Git repository URL was provided,
-2. clone the repository if the project directory does not already exist,
-3. change into the project directory,
-4. detect whether `docker compose` or `docker-compose` is available,
-5. start the containers in the background.
-
-## What the update script does
-
-The update script will:
-
-1. make sure the repository exists locally,
-2. download the latest changes from Git,
-3. reload the Docker Compose configuration,
-4. pull newer container images,
-5. restart the containers in the background.
-
-## If Docker permission is denied
-
-If you see an error like:
-
-```bash
-permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
-```
-
-you can either:
-
-### Option 1: use sudo
-
-```bash
-sudo ./install.sh https://github.com/gery0815/iot-clients.git
-```
-
-or for updates:
-
-```bash
-sudo ./update.sh
-```
-
-### Option 2: add your user to the docker group
-
-```bash
-sudo usermod -aG docker "$USER"
-newgrp docker
-```
-
-Then try again:
-
-```bash
-./install.sh https://github.com/gery0815/iot-clients.git
-```
-
-or:
-
-```bash
-./update.sh
-```
-
-## Start containers manually
+## Manual Docker Compose usage
 
 If the repository is already cloned, you can start the containers manually:
 
@@ -267,7 +160,7 @@ or:
 docker-compose up -d
 ```
 
-## Stop containers
+To stop the containers:
 
 ```bash
 docker compose down
@@ -290,8 +183,8 @@ After startup, the services are available at:
 
 - Port `80` is used by openCCU and may conflict with another web server already running on the host.
 - openCCU may require additional configuration depending on your hardware and environment.
-- If Docker requires elevated permissions, the scripts may retry with `sudo`.
-- OpenCCU publishes releases through its project and container ecosystem; for stability, consider pinning a tested image tag instead of always using `latest`. ([github.com](https://github.com/OpenCCU/OpenCCU?utm_source=openai))
+- If Docker requires elevated permissions, the scripts automatically use `sudo`.
+- The install and update scripts are fixed to use the repository `https://github.com/gery0815/iot-clients.git`.
 
 ## Troubleshooting
 
@@ -315,6 +208,21 @@ or:
 
 ```bash
 wget -O install.sh https://raw.githubusercontent.com/gery0815/iot-clients/main/install.sh
+```
+
+### Docker permission denied
+
+If you see an error like:
+
+```bash
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+```
+
+you can either let the script use `sudo`, or add your user to the docker group:
+
+```bash
+sudo usermod -aG docker "$USER"
+newgrp docker
 ```
 
 ### Docker Compose not found
