@@ -1,0 +1,31 @@
+services:
+  nodered:
+    image: nodered/node-red:latest
+    container_name: nodered
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered_data:/data
+    depends_on:
+      - openccu
+
+  openccu:
+    image: ghcr.io/openccu/openccu:latest
+    container_name: openccu
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "80:80"
+      - "2001:2001"
+      - "2010:2010"
+      - "8181:8181"
+      - "8701:8701"
+    volumes:
+      - openccu_data:/usr/local
+    tty: true
+    stdin_open: true
+
+volumes:
+  nodered_data:
+  openccu_data:
