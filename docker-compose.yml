@@ -6,7 +6,7 @@ services:
     ports:
       - "1880:1880"
     volumes:
-      - nodered_data:/data
+      - ./nodered-data:/data
     depends_on:
       - openccu
 
@@ -22,10 +22,8 @@ services:
       - "8181:8181"
       - "8701:8701"
     volumes:
-      - openccu_data:/usr/local
+      - ./openccu-data:/usr/local
+    devices:
+      - "${OCCU_USB_DEVICE:-/dev/ttyUSB0}:${OCCU_USB_DEVICE:-/dev/ttyUSB0}"
     tty: true
     stdin_open: true
-
-volumes:
-  nodered_data:
-  openccu_data:
