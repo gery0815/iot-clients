@@ -76,9 +76,11 @@ module.exports = {
 }
 EOF
 
-$DOCKER_PREFIX $DOCKER_COMPOSE_CMD up -d
+$DOCKER_PREFIX $DOCKER_COMPOSE_CMD up -d --build
 
 echo "Containers started successfully."
 echo "Node-RED: http://localhost:1880"
 echo "openCCU:  http://localhost"
 echo "openCCU USB device: $OCCU_USB_DEVICE"
+echo
+echo "Host requirement for Homematic RF modules: install the piVCCU kernel modules on the host OS, not in the container."

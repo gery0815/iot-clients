@@ -11,7 +11,10 @@ services:
       - openccu
 
   openccu:
-    image: ghcr.io/openccu/openccu:latest
+    image: raspi-client/openccu:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.openccu
     container_name: openccu
     restart: unless-stopped
     privileged: true

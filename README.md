@@ -5,6 +5,8 @@ This project provides a Docker Compose setup for running:
 - **Node-RED**
 - **openCCU**
 
+The `openccu` service is built from a local custom image so additional packages can be installed on top of the upstream `ghcr.io/openccu/openccu:latest` base image.
+
 It also includes helper scripts to install and update the setup from the repository `gery0815/iot-clients`.
 
 ## Requirements
@@ -183,6 +185,8 @@ After startup, the services are available at:
 
 - Port `80` is used by openCCU and may conflict with another web server already running on the host.
 - openCCU may require additional configuration depending on your hardware and environment.
+- Homematic RF USB drivers such as `pivccu-modules-dkms` must be installed on the host OS, not inside the container.
+- The custom `openccu` image installs these packages inside the container: `wget`, `ca-certificates`, `build-essential`, `bison`, `flex`, `libssl-dev`, and `gpg`.
 - If Docker requires elevated permissions, the scripts automatically use `sudo`.
 - The install and update scripts are fixed to use the repository `https://github.com/gery0815/iot-clients.git`.
 
