@@ -4,10 +4,75 @@ set -euo pipefail
 REPO_URL="https://github.com/gery0815/iot-clients.git"
 APP_DIR="iot-clients"
 
-if ! command -v git >/dev/null 2>&1; then
-  echo "Git is not installed. Please install Git first."
-  exit 1
+PKG_PREFIX=""
+
+if [ "${EUID:-$(id -u)}" -ne 0 ]; then
+  if command -v sudo >/dev/null 2>&1; then
+    PKG_PREFIX="sudo"
+  else
+    echo "This script needs root privileges to install missing packages."
+    echo "Please run as root or install 'sudo'."
+    exit 1
+  fi
 fi
+
+ensure_prerequisites() {
+  local need_update=0
+
+  if [ -f /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+  fi
+
+  if [ "${ID:-}" != "debian" ] && [[ "${ID_LIKE:-}" != *"debian"* ]]; then
+    if ! command -v git >/dev/null 2>&1 || ! command -v docker >/dev/null 2>&1; then
+      echo "Automatic dependency installation is supported only on Debian-based systems."
+      echo "Please install git, docker, and docker compose manually, then rerun this script."
+      exit 1
+    fi
+    return 0
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    need_update=1
+  fi
+  if ! command -v docker >/dev/null 2>&1; then
+    need_update=1
+  fi
+  if ! command -v docker-compose >/dev/null 2>&1; then
+    if ! docker compose version >/dev/null 2>&1; then
+      need_update=1
+    fi
+  fi
+
+  if [ "$need_update" -eq 1 ]; then
+    echo "Installing missing prerequisites (git, docker, docker compose)..."
+    $PKG_PREFIX apt-get update
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    $PKG_PREFIX apt-get install -y git
+  fi
+
+  if ! command -v docker >/dev/null 2>&1; then
+    $PKG_PREFIX apt-get install -y docker.io
+    if command -v systemctl >/dev/null 2>&1; then
+      $PKG_PREFIX systemctl enable --now docker >/dev/null 2>&1 || true
+    fi
+  fi
+
+  if ! docker compose version >/dev/null 2>&1; then
+    if apt-cache show docker-compose-plugin >/dev/null 2>&1; then
+      $PKG_PREFIX apt-get install -y docker-compose-plugin
+    fi
+  fi
+
+  if ! docker compose version >/dev/null 2>&1 && ! command -v docker-compose >/dev/null 2>&1; then
+    $PKG_PREFIX apt-get install -y docker-compose
+  fi
+}
+
+ensure_prerequisites
 
 DOCKER_PREFIX=""
 DOCKER_COMPOSE_CMD=""
@@ -23,7 +88,8 @@ if [ -z "$DOCKER_COMPOSE_CMD" ] && command -v docker-compose >/dev/null 2>&1; th
 fi
 
 if [ -z "$DOCKER_COMPOSE_CMD" ]; then
-  echo "Docker Compose not found. Please install Docker and Docker Compose first."
+  echo "Docker Compose not found after dependency installation."
+  echo "Please install Docker Compose manually and rerun this script."
   exit 1
 fi
 

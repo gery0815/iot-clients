@@ -18,6 +18,8 @@ Before using the scripts, make sure the following tools are installed:
 - Docker Compose plugin (`docker compose`) or legacy `docker-compose`
 - optionally `curl` or `wget` for direct script download
 
+On Debian/Raspberry Pi OS, `install.sh` and `update.sh` automatically install missing `git`, Docker, and Docker Compose packages.
+
 ## Files
 
 - `docker-compose.yml` — defines the Node-RED and openCCU containers
