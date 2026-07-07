@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/gery0815/iot-clients.git"
 APP_DIR="iot-clients"
+DEFAULT_NODERED_IMAGE="nodered/node-red:latest"
 
 PKG_PREFIX=""
 
@@ -108,9 +109,13 @@ cd "$APP_DIR"
 mkdir -p nodered-data openccu-data
 
 CURRENT_USB_DEVICE="/dev/ttyUSB0"
+NODERED_IMAGE="$DEFAULT_NODERED_IMAGE"
 if [ -f .env ]; then
   CURRENT_USB_DEVICE="$(grep '^OCCU_USB_DEVICE=' .env | cut -d= -f2- || true)"
   CURRENT_USB_DEVICE="${CURRENT_USB_DEVICE:-/dev/ttyUSB0}"
+
+  EXISTING_NODERED_IMAGE="$(grep '^NODERED_IMAGE=' .env | cut -d= -f2- || true)"
+  NODERED_IMAGE="${EXISTING_NODERED_IMAGE:-$DEFAULT_NODERED_IMAGE}"
 fi
 
 echo "Updating repository..."
@@ -126,6 +131,7 @@ fi
 
 cat > .env <<EOF
 OCCU_USB_DEVICE=$OCCU_USB_DEVICE
+NODERED_IMAGE=$NODERED_IMAGE
 EOF
 
 read -rp "Change Node-RED admin credentials? (y/N): " CHANGE_CREDS
@@ -140,7 +146,13 @@ if [[ "$CHANGE_CREDS" =~ ^[Yy]$ ]]; then
     exit 1
   fi
 
-  HASHED_PASS="$($DOCKER_PREFIX docker run --rm nodered/node-red:latest node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8))" "$NODERED_PASS")"
+  if ! $DOCKER_PREFIX docker pull "$NODERED_IMAGE" >/dev/null; then
+    echo "Failed to pull '$NODERED_IMAGE'."
+    echo "Set NODERED_IMAGE in .env to a compatible image tag and rerun."
+    exit 1
+  fi
+
+  HASHED_PASS="$($DOCKER_PREFIX docker run --rm "$NODERED_IMAGE" node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8))" "$NODERED_PASS")"
 
   cat > nodered-data/settings.js <<EOF
 module.exports = {

@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_URL="https://github.com/gery0815/iot-clients.git"
 APP_DIR="iot-clients"
+DEFAULT_NODERED_IMAGE="nodered/node-red:latest"
 
 PKG_PREFIX=""
 
@@ -108,6 +109,8 @@ cd "$APP_DIR"
 
 mkdir -p nodered-data openccu-data
 
+NODERED_IMAGE="$DEFAULT_NODERED_IMAGE"
+
 read -rp "Enter USB device for openCCU [default: /dev/ttyUSB0]: " OCCU_USB_DEVICE
 OCCU_USB_DEVICE="${OCCU_USB_DEVICE:-/dev/ttyUSB0}"
 
@@ -121,10 +124,18 @@ if [ -z "$NODERED_PASS" ]; then
   exit 1
 fi
 
-HASHED_PASS="$($DOCKER_PREFIX docker run --rm nodered/node-red:latest node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8))" "$NODERED_PASS")"
+echo "Pulling Node-RED image for password hash generation: $NODERED_IMAGE"
+if ! $DOCKER_PREFIX docker pull "$NODERED_IMAGE" >/dev/null; then
+  echo "Failed to pull '$NODERED_IMAGE'."
+  echo "If your device architecture is not supported by this tag, set NODERED_IMAGE in .env to a compatible image tag and rerun."
+  exit 1
+fi
+
+HASHED_PASS="$($DOCKER_PREFIX docker run --rm "$NODERED_IMAGE" node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8))" "$NODERED_PASS")"
 
 cat > .env <<EOF
 OCCU_USB_DEVICE=$OCCU_USB_DEVICE
+NODERED_IMAGE=$NODERED_IMAGE
 EOF
 
 cat > nodered-data/settings.js <<EOF

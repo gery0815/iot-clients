@@ -52,9 +52,12 @@ Example:
 
 ```bash
 OCCU_USB_DEVICE=/dev/ttyUSB0
+NODERED_IMAGE=nodered/node-red:latest
 ```
 
 If your RF module is connected under a different path, such as `/dev/ttyACM0`, enter that value during install or update.
+
+If your hardware requires a different Node-RED image tag, set `NODERED_IMAGE` in `.env`.
 
 ### Node-RED admin credentials
 
@@ -257,6 +260,18 @@ or:
 ```bash
 docker-compose logs
 ```
+
+### Node-RED image pull fails during install
+
+If install/update fails while pulling `nodered/node-red:latest`, your CPU architecture may require a different tag.
+
+Set a compatible image in `.env`, for example:
+
+```bash
+NODERED_IMAGE=nodered/node-red:3.1.0
+```
+
+Then rerun `./install.sh` or `./update.sh`.
 
 ### Check running containers
 
