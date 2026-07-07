@@ -1,9 +1,10 @@
-# Node-RED + openCCU Docker Setup
+# Node-RED + openCCU + Portainer Docker Setup
 
 This project provides a Docker Compose setup for running:
 
 - **Node-RED**
 - **openCCU**
+- **Portainer**
 
 The `openccu` service is built from a local custom image so additional packages can be installed on top of the upstream `ghcr.io/openccu/openccu:latest` base image.
 
@@ -22,7 +23,7 @@ On Debian/Raspberry Pi OS, `install.sh` and `update.sh` automatically install mi
 
 ## Files
 
-- `docker-compose.yml` — defines the Node-RED and openCCU containers
+- `docker-compose.yml` — defines the Node-RED, openCCU, and Portainer containers
 - `install.sh` — clones the repository, configures the setup, and starts the containers
 - `update.sh` — reloads the latest files from Git, optionally updates configuration, and restarts the containers
 
@@ -182,10 +183,12 @@ After startup, the services are available at:
 
 - **Node-RED:** `http://localhost:1880`
 - **openCCU:** `http://localhost`
+- **Portainer:** `http://localhost:9000` (or `https://localhost:9443`)
 
 ## Notes
 
 - Port `80` is used by openCCU and may conflict with another web server already running on the host.
+- Port `9000`/`9443` are used by Portainer and may conflict with existing services.
 - openCCU may require additional configuration depending on your hardware and environment.
 - Homematic RF USB drivers such as `pivccu-modules-dkms` must be installed on the host OS, not inside the container.
 - The custom `openccu` image installs these packages inside the container: `wget`, `ca-certificates`, `build-essential`, `bison`, `flex`, `libssl-dev`, and `gpg`.

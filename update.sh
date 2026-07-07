@@ -158,13 +158,14 @@ module.exports = {
 EOF
 fi
 
-$DOCKER_PREFIX $DOCKER_COMPOSE_CMD pull nodered
+$DOCKER_PREFIX $DOCKER_COMPOSE_CMD pull nodered portainer
 $DOCKER_PREFIX $DOCKER_COMPOSE_CMD build --pull openccu
 $DOCKER_PREFIX $DOCKER_COMPOSE_CMD up -d
 
 echo "Project updated and containers restarted successfully."
 echo "Node-RED: http://localhost:1880"
 echo "openCCU:  http://localhost"
+echo "Portainer: http://localhost:9000 (HTTPS: https://localhost:9443)"
 echo "openCCU USB device: $OCCU_USB_DEVICE"
 echo
 echo "Host requirement for Homematic RF modules: install the piVCCU kernel modules on the host OS, not in the container."

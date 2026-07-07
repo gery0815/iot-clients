@@ -29,6 +29,18 @@ services:
     tty: true
     stdin_open: true
 
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
 volumes:
   nodered_data:
   openccu_data:
+  portainer_data:
