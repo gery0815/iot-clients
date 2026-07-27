@@ -1,5 +1,6 @@
 services:
   nodered:
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
     image: ${NODERED_IMAGE:-nodered/node-red:latest}
     container_name: nodered
     restart: unless-stopped
@@ -11,6 +12,7 @@ services:
       - openccu
 
   openccu:
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
     image: raspi-client/openccu:latest
     build:
       context: .
@@ -30,6 +32,7 @@ services:
     stdin_open: true
 
   portainer:
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
     image: portainer/portainer-ce:latest
     container_name: portainer
     restart: unless-stopped

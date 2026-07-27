@@ -21,6 +21,13 @@ Before using the scripts, make sure the following tools are installed:
 
 On Debian/Raspberry Pi OS, `install.sh` and `update.sh` automatically install missing `git`, Docker, and Docker Compose packages.
 
+They also configure required host-side piVCCU dependencies and modules:
+
+- install `wget`, `ca-certificates`, `build-essential`, `bison`, `flex`, `libssl-dev`, and `gpg`
+- add the piVCCU apt repository and install `pivccu-modules-dkms`
+- start and enable the `pivccu-dkms` service
+- configure `eq3_char_loop` to autoload on boot and load it immediately
+
 ## Files
 
 - `docker-compose.yml` — defines the Node-RED, openCCU, and Portainer containers
@@ -58,6 +65,12 @@ NODERED_IMAGE=nodered/node-red:latest
 If your RF module is connected under a different path, such as `/dev/ttyACM0`, enter that value during install or update.
 
 If your hardware requires a different Node-RED image tag, set `NODERED_IMAGE` in `.env`.
+
+You can also set `NODERED_IMAGE` before running install/update:
+
+```bash
+NODERED_IMAGE=<your-compatible-tag> ./install.sh
+```
 
 ### Node-RED admin credentials
 
@@ -110,11 +123,12 @@ chmod +x install.sh
 The install script will:
 
 1. clone the repository,
-2. ask for the openCCU USB device path,
-3. ask for Node-RED admin username and password,
-4. generate `.env`,
-5. generate `nodered-data/settings.js`,
-6. start the containers.
+2. install/configure host piVCCU modules and boot-time autostart,
+3. ask for the openCCU USB device path,
+4. ask for Node-RED admin username and password,
+5. generate `.env`,
+6. generate `nodered-data/settings.js`,
+7. start the containers.
 
 ## Update after changes
 
@@ -149,10 +163,11 @@ chmod +x update.sh
 The update script will:
 
 1. pull the latest repository changes,
-2. optionally change the openCCU USB device path,
-3. optionally change the Node-RED admin credentials,
-4. pull updated container images,
-5. restart the containers.
+2. ensure host piVCCU modules and boot-time autostart are configured,
+3. optionally change the openCCU USB device path,
+4. optionally change the Node-RED admin credentials,
+5. pull updated container images,
+6. restart the containers.
 
 ## Manual Docker Compose usage
 
@@ -193,7 +208,7 @@ After startup, the services are available at:
 - Port `80` is used by openCCU and may conflict with another web server already running on the host.
 - Port `9000`/`9443` are used by Portainer and may conflict with existing services.
 - openCCU may require additional configuration depending on your hardware and environment.
-- Homematic RF USB drivers such as `pivccu-modules-dkms` must be installed on the host OS, not inside the container.
+- Homematic RF USB drivers such as `pivccu-modules-dkms` are installed on the host OS by `install.sh`/`update.sh` (Debian-based hosts).
 - The custom `openccu` image installs these packages inside the container: `wget`, `ca-certificates`, `build-essential`, `bison`, `flex`, `libssl-dev`, and `gpg`.
 - If Docker requires elevated permissions, the scripts automatically use `sudo`.
 - The install and update scripts are fixed to use the repository `https://github.com/gery0815/iot-clients.git`.
@@ -265,7 +280,9 @@ docker-compose logs
 
 If install/update fails while pulling `nodered/node-red:latest`, your CPU architecture may require a different tag.
 
-Set a compatible image in `.env`, for example:
+The scripts now prompt for an alternative tag automatically when pull fails.
+
+Set a compatible image in `.env`, or pass it when starting the script. For example:
 
 ```bash
 NODERED_IMAGE=nodered/node-red:3.1.0
