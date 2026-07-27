@@ -5,6 +5,7 @@ REPO_URL="https://github.com/gery0815/iot-clients.git"
 APP_DIR="iot-clients"
 DEFAULT_NODERED_IMAGE="nodered/node-red:latest"
 NODERED_PULL_TIMEOUT_SECONDS="${NODERED_PULL_TIMEOUT_SECONDS:-900}"
+NODERED_HASH_TIMEOUT_SECONDS="${NODERED_HASH_TIMEOUT_SECONDS:-120}"
 
 PKG_PREFIX=""
 
@@ -173,6 +174,24 @@ pull_nodered_image_or_prompt() {
   done
 }
 
+generate_nodered_bcrypt_hash() {
+  local password="$1"
+  local hash
+  local timeout_cmd=()
+
+  if command -v timeout >/dev/null 2>&1; then
+    timeout_cmd=(timeout "$NODERED_HASH_TIMEOUT_SECONDS")
+  fi
+
+  if ! hash="$($DOCKER_PREFIX "${timeout_cmd[@]}" docker run --rm --entrypoint node "$NODERED_IMAGE" -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8))" "$password")"; then
+    echo "Failed to generate Node-RED password hash in container '$NODERED_IMAGE'."
+    echo "Try a different NODERED_IMAGE tag or rerun with: NODERED_HASH_TIMEOUT_SECONDS=300 ./install.sh"
+    return 1
+  fi
+
+  printf '%s' "$hash"
+}
+
 DOCKER_PREFIX=""
 DOCKER_COMPOSE_CMD=""
 
@@ -227,7 +246,9 @@ if ! pull_nodered_image_or_prompt "$NODERED_IMAGE"; then
   exit 1
 fi
 
-HASHED_PASS="$($DOCKER_PREFIX docker run --rm "$NODERED_IMAGE" node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 8))" "$NODERED_PASS")"
+if ! HASHED_PASS="$(generate_nodered_bcrypt_hash "$NODERED_PASS")"; then
+  exit 1
+fi
 
 cat > .env <<EOF
 OCCU_USB_DEVICE=$OCCU_USB_DEVICE
