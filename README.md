@@ -209,7 +209,7 @@ After startup, the services are available at:
 - Port `9000`/`9443` are used by Portainer and may conflict with existing services.
 - openCCU may require additional configuration depending on your hardware and environment.
 - Homematic RF USB drivers such as `pivccu-modules-dkms` are installed on the host OS by `install.sh`/`update.sh` (Debian-based hosts).
-- The custom `openccu` image installs these packages inside the container: `wget`, `ca-certificates`, `build-essential`, `bison`, `flex`, `libssl-dev`, and `gpg`.
+- Host-side setup installs required piVCCU build dependencies: `wget`, `ca-certificates`, `build-essential`, `bison`, `flex`, `libssl-dev`, and `gpg`.
 - If Docker requires elevated permissions, the scripts automatically use `sudo`.
 - The install and update scripts are fixed to use the repository `https://github.com/gery0815/iot-clients.git`.
 
